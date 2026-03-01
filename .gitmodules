@@ -1,0 +1,3 @@
+[submodule "static/CV"]
+	path = static/CV
+	url = git@github.com:kingchubz/CV.git

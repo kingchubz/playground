@@ -21,7 +21,7 @@ RUN pip install --upgrade pip \
 COPY . .
 
 # Set default Django settings module
-ENV DJANGO_SETTINGS_MODULE=config.settings
+ENV DJANGO_SETTINGS_MODULE=config.settings.prod
 
 # Run with gunicorn
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]

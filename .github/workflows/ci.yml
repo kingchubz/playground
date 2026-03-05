@@ -1,0 +1,36 @@
+name: playground CI
+
+#on:
+#  push:
+#    branches:
+#      - main
+
+on: workflow_dispatch
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Run migrations
+        run: |
+          cd backend
+          python manage.py migrate
+          
+      - name: Run tests
+        run: |
+          cd backend
+          python manage.py test

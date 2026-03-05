@@ -28,11 +28,17 @@ jobs:
       - name: Run migrations
         env: 
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: ${{ vars.DEBUG }}
+          ALLOWED_HOSTS: ${{ vars.ALLOWED_HOSTS }}
         run: |
           cd backend
           python manage.py migrate
           
       - name: Run tests
+        env: 
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: ${{ vars.DEBUG }}
+          ALLOWED_HOSTS: ${{ vars.ALLOWED_HOSTS }}
         run: |
           cd backend
           python manage.py test

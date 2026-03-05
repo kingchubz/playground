@@ -10,7 +10,7 @@ class DatetimeTest(TestCase):
         """
         curr_date() returns correct time within 1 second.
         """
-        response = client.get('/time/')
+        response = client.get('/api/time/')
         self.assertEqual(response.status_code, 200)
 
         curr_date_dict = json.loads(response.getvalue())

@@ -1,9 +1,8 @@
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from django.utils import timezone
 from django.http import JsonResponse
 
 
 def curr_date(request):
-    current_date = datetime.now(tz=ZoneInfo('Europe/Warsaw'))
-    response = JsonResponse({'datetime': current_date.strftime('%a %d %b %Y %H:%M:%S')})
+    current_date = timezone.now()
+    response = JsonResponse({'datetime': current_date.isoformat()})
     return response

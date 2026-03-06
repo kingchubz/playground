@@ -8,7 +8,7 @@ name: playground CI
 on: workflow_dispatch
 
 jobs:
-  backend:
+  CI:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,14 +25,14 @@ jobs:
           cd backend
           pip install -r requirements.txt
 
-      - name: Run migrations
+      - name: Check migrations
         env: 
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DEBUG: ${{ vars.DEBUG }}
           ALLOWED_HOSTS: ${{ vars.ALLOWED_HOSTS }}
         run: |
           cd backend
-          python manage.py migrate
+          python manage.py makemigrations --check --dry-run
           
       - name: Run tests
         env: 

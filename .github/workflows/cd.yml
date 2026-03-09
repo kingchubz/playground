@@ -65,9 +65,7 @@ jobs:
 
         - name: Deploy container
           run: |
-            ssh -o StrictHostKeyChecking=no \
-            -i ~/.ssh/key.pem \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
             
             docker pull ${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
             
@@ -83,3 +81,4 @@ jobs:
               --env-file /home/ubuntu/.env \
               -p 8000:8000 \
               ${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
+            EOF

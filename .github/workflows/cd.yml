@@ -7,13 +7,17 @@ jobs:
       runs-on: ubuntu-latest
 
       env:
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-        ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         IMAGE_TAG: ${{ github.sha }}
 
       steps:
         - name: Checkout code
           uses: actions/checkout@v6
+
+        - name: Debug secrets
+          run: |
+            if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then echo "Missing ACCESS KEY"; fi
+            if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then echo "Missing SECRET KEY"; fi
+            if [ -z "${{ secrets.AWS_REGION }}" ]; then echo "Missing REGION"; fi
 
         - name: Set up Python
           uses: actions/setup-python@v5
@@ -28,7 +32,7 @@ jobs:
         - name: Configure AWS credentials
           uses: aws-actions/configure-aws-credentials@v4
           with:
-            aws-region: eu-north-1
+            aws-region: ${{ secrets.AWS_REGION }}
             aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
             aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -43,11 +47,11 @@ jobs:
         - name: Build image
           run: |
             cd backend
-            docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+            docker build -t ${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG .
 
         - name: Push image to ECR
           run: |
-            docker push $ECR_REPOSITORY:$IMAGE_TAG
+            docker push ${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
 
         - name: Upload static
           run: |
@@ -61,21 +65,23 @@ jobs:
 
         - name: Deploy container
           run: |
-            ssh -o StrictHostKeyChecking=no \
-            -i ~/.ssh/key.pem \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
             
-            docker pull $ECR_REPOSITORY:$IMAGE_TAG
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+            | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
+            
+            docker pull ${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
             
             docker stop playground_app || true
             docker rm playground_app || true
             
-            docker run --env-file .env \
-              $ECR_REPOSITORY:$IMAGE_TAG \
+            docker run --env-file /home/${{ secrets.EC2_USER }}/.env \
+              ${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG \
               python manage.py migrate
             
             docker run -d \
               --name playground_app \
-              --env-file .env \
+              --env-file /home/ubuntu/.env \
               -p 8000:8000 \
-              $ECR_REPOSITORY:$IMAGE_TAG
+              ${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
+            EOF
